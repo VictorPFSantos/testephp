@@ -85,83 +85,80 @@ $(window).ready(function () {
     $("#btnCriar").on("click", function (e) {
         let action = e.target.getAttribute("action");
 
-        if (action == "salvar")
+        $.post("insert.php", {
+            nome: $("#nome").val(),
+            operadora: $("#operadora").val(),
+            tipo: $("#tipo").val(),
+            vencto: $("#vencto").val()
+        }, function (res) {
+            var resp = JSON.parse(res);
+            let cod = null, line = null;
+
+            line = "<tr>";
+
+            for (let i = 0; i < resp.reg.length; i++) {
+                if (i == 0)
+                    cod = resp.reg[i];
+
+                line += "<td>" + resp.reg[i] + "</td>";
+            }
+
+            // for (d of resp.reg)
+            //     line += "<td>" + d + "</td>";
 
 
-            $.post("insert.php", {
-                nome: $("#nome").val(),
-                operadora: $("#operadora").val(),
-                tipo: $("#tipo").val(),
-                vencto: $("#vencto").val()
-            }, function (res) {
-                var resp = JSON.parse(res);
-                let cod = null, line = null;
+            line += "<td><button class='editar' id='editar_" + cod + "'>Editar</button><button class='apagar' id='apagar_" + cod + "'>Apagar</button></td>";
+            line += "</tr>";
 
-                line = "<tr>";
-
-                for (let i = 0; i < resp.reg.length; i++) {
-                    if (i == 0)
-                        cod = resp.reg[i];
-
-                    line += "<td>" + resp.reg[i] + "</td>";
-                }
-
-                // for (d of resp.reg)
-                //     line += "<td>" + d + "</td>";
+            $("table tbody").append(line);
 
 
-                line += "<td><button class='editar' id='editar_" + cod + "'>Editar</button><button class='apagar' id='apagar_" + cod + "'>Apagar</button></td>";
-                line += "</tr>";
+            $("input[type=text], input[type=date]").val('');
 
-                $("table tbody").append(line);
+            let btnsEditar = $("button.editar");
 
-
-                $("input[type=text], input[type=date]").val('');
-
-                let btnsEditar = $("button.editar");
+            $("button.editar").on('click', function (e) {
+                let codReg = e.target.id.split('_')[0];
+                // alert(actions);
 
                 $("button.editar").on('click', function (e) {
-                    let codReg = e.target.id.split('_')[0];
-                    // alert(actions);
-
-                    $("button.editar").on('click', function (e) {
-                        let codReg = e.target.id.split('_')[1];
-
-                        $.post("edit.php", {
-                            cod: codReg,
-                        }, function (res) {
-                            let resp = JSON.parse(res);
-
-                            $("#cod").val(resp.cod);
-                            $("#nome").val(resp.nome);
-                            $("#operadora").val(resp.operadora);
-                            $("#tipo").val(resp.tipo_beneficio);
-                            $("#vencto").val(resp.vencto_contrato);
-
-                            $("#btnCriar").css("display", "none");
-                            $("#btnEditar").css("display", "block");
-
-                        });
-                    });
-                });
-
-                $("button.apagar").on('click', function (e) {
                     let codReg = e.target.id.split('_')[1];
 
-                    $.post("delete.php", {
+                    $.post("edit.php", {
                         cod: codReg,
                     }, function (res) {
                         let resp = JSON.parse(res);
 
-                        alert(resp.msg);
+                        $("#cod").val(resp.cod);
+                        $("#nome").val(resp.nome);
+                        $("#operadora").val(resp.operadora);
+                        $("#tipo").val(resp.tipo_beneficio);
+                        $("#vencto").val(resp.vencto_contrato);
 
-                        $("input[type=text], input[type=date]").val('');
-                        window.location.reload();
+                        $("#btnCriar").css("display", "none");
+                        $("#btnEditar").css("display", "block");
 
                     });
                 });
-
             });
+
+            $("button.apagar").on('click', function (e) {
+                let codReg = e.target.id.split('_')[1];
+
+                $.post("delete.php", {
+                    cod: codReg,
+                }, function (res) {
+                    let resp = JSON.parse(res);
+
+                    alert(resp.msg);
+
+                    $("input[type=text], input[type=date]").val('');
+                    window.location.reload();
+
+                });
+            });
+
+        });
     });
 
     $()
