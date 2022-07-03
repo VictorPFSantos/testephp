@@ -7,8 +7,7 @@
         private $tipo_beneficio;
         private $vencimento_contrato;
 
-        public function __construct($cod, $nome, $operadora, $tipo_beneficio, $vencimento_contrato){
-            $this->cod = $cod;
+        public function __construct($nome, $operadora, $tipo_beneficio, $vencimento_contrato){
             $this->nome = $nome;
             $this->operadora = $operadora;
             $this->tipo_beneficio = $tipo_beneficio;

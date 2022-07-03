@@ -1,170 +1,116 @@
 $(window).ready(function () {
-    var registros = [];
+    let lines = [];
 
-    $("#btnEditar").on('click', function () {
-        $.post("update.php", {
-            cod: $("#cod").val(),
-            nome: $("#nome").val(),
-            operadora: $("#operadora").val(),
-            tipo: $("#tipo").val(),
-            vencto: $("#vencto").val()
-        }, function (res) {
+    function apagarRegistro(event) {
+        let [btnAction, btnId] = event.target.id.split('_');
+
+        $.post("controller/BeneficiosController.php", {
+            action: btnAction,
+            id: btnId
+        }, res => {
             // console.log(res); return;
             let resp = JSON.parse(res);
 
-            $("input[type=text], input[type=date]").val('');
+            if (resp.resCod) {
+                let tr = event.target.parentNode.parentNode;
+                let parent = tr.parentNode;
+                parent.removeChild(tr);
 
-            alert(resp.msg);
-
-            window.location.reload();
-
-        });
-    });
-
-    $.get('list.php', function (res) {
-        let resp = JSON.parse(res);
-        let lines = "";
-
-        for (reg of resp.regs)
-            lines += "<tr>" +
-                "<td>" + reg.cod + "</td>" +
-                "<td>" + reg.nome + "</td>" +
-                "<td>" + reg.operadora + "</td>" +
-                "<td>" + reg.tipo_beneficio + "</td>" +
-                "<td>" + reg.vencto_contrato + "</td>" +
-                "<td><button class='editar' id='editar_" + reg.cod + "'>Editar</button>" +
-                "<button class='apagar' id='apagar_" + reg.cod + "'>Apagar</button></td>" +
-                "</tr>";
-
-        $("table tbody").html(lines);
-
-        $("button.editar").on('click', function (e) {
-            let codReg = e.target.id.split('_')[0];
-            // alert(actions);
-
-            $("button.editar").on('click', function (e) {
-                let codReg = e.target.id.split('_')[1];
-
-                $.post("edit.php", {
-                    cod: codReg,
-                }, function (res) {
-                    let resp = JSON.parse(res);
-
-                    $("#cod").val(resp.cod);
-                    $("#nome").val(resp.nome);
-                    $("#operadora").val(resp.operadora);
-                    $("#tipo").val(resp.tipo_beneficio);
-                    $("#vencto").val(resp.vencto_contrato);
-
-                    $("#btnCriar").css("display", "none");
-                    $("#btnEditar").css("display", "block");
-
-                });
-            });
-        });
-
-        $("button.apagar").on('click', function (e) {
-            let codReg = e.target.id.split('_')[1];
-
-            $.post("delete.php", {
-                cod: codReg,
-            }, function (res) {
-                let resp = JSON.parse(res);
-
-                alert(resp.msg);
-
-                $("input[type=text], input[type=date]").val('');
-                window.location.reload();
-
-            });
-        });
-    });
-
-
-
-    $("#btnCriar").on("click", function (e) {
-        let action = e.target.getAttribute("action");
-
-        $.post("insert.php", {
-            nome: $("#nome").val(),
-            operadora: $("#operadora").val(),
-            tipo: $("#tipo").val(),
-            vencto: $("#vencto").val()
-        }, function (res) {
-            var resp = JSON.parse(res);
-            let cod = null, line = null;
-
-            line = "<tr>";
-
-            for (let i = 0; i < resp.reg.length; i++) {
-                if (i == 0)
-                    cod = resp.reg[i];
-
-                line += "<td>" + resp.reg[i] + "</td>";
+                if ($("tbody tr").length === 0) {
+                    $('#registros h4').css('display', 'block').html('<h4>Não há nenhum benefício cadastrado no momento.<h4>');
+                    $('#registros table').css('display', 'none');
+                }
             }
 
-            // for (d of resp.reg)
-            //     line += "<td>" + d + "</td>";
-
-
-            line += "<td><button class='editar' id='editar_" + cod + "'>Editar</button><button class='apagar' id='apagar_" + cod + "'>Apagar</button></td>";
-            line += "</tr>";
-
-            $("table tbody").append(line);
-
-
-            $("input[type=text], input[type=date]").val('');
-
-            let btnsEditar = $("button.editar");
-
-            $("button.editar").on('click', function (e) {
-                let codReg = e.target.id.split('_')[0];
-                // alert(actions);
-
-                $("button.editar").on('click', function (e) {
-                    let codReg = e.target.id.split('_')[1];
-
-                    $.post("edit.php", {
-                        cod: codReg,
-                    }, function (res) {
-                        let resp = JSON.parse(res);
-
-                        $("#cod").val(resp.cod);
-                        $("#nome").val(resp.nome);
-                        $("#operadora").val(resp.operadora);
-                        $("#tipo").val(resp.tipo_beneficio);
-                        $("#vencto").val(resp.vencto_contrato);
-
-                        $("#btnCriar").css("display", "none");
-                        $("#btnEditar").css("display", "block");
-
-                    });
-                });
-            });
-
-            $("button.apagar").on('click', function (e) {
-                let codReg = e.target.id.split('_')[1];
-
-                $.post("delete.php", {
-                    cod: codReg,
-                }, function (res) {
-                    let resp = JSON.parse(res);
-
-                    alert(resp.msg);
-
-                    $("input[type=text], input[type=date]").val('');
-                    window.location.reload();
-
-                });
-            });
-
+            alert(resp.res.msg);
         });
+    }
+
+    // SELECT
+    $.get('controller/BeneficiosController.php/?action', res => {
+        let resp = JSON.parse(res);
+
+        if (!resp.resCod) {
+            $('#registros h4').css('display', 'block').html('<h4>' + resp.res.msg + '<h4>');
+            $('#registros table').css('display', 'none');
+        } else {
+            lines = resp.res.beneficios;
+
+            $('tbody').html(lines.map(line => {
+                return `
+                    <tr>
+                        <td>${line.cod}</td>
+                        <td>${line.nome}</td>
+                        <td>${line.operadora}</td>
+                        <td>${line.tipo}</td>
+                        <td>${line.vencimento}</td>
+                        <td><button class="btnDelete" id="delete_${line.cod}" -data-action="delete_${line.cod}"><ion-icon name="trash-outline"></ion-icon> Apagar Registro</button></td>
+                    </tr>
+                `;
+            }).join(''));
+
+            $("button.btnDelete").on('click', e => apagarRegistro(e));
+
+            $('#registros table').css('display', 'table');
+        }
     });
 
-    $()
+    // INSERT
+    $('#salvar').on('click', e => {
+        if ($('#nome').val() === "") {
+            alert('O campo nome do benefício precisa ser preenchido!');
+            return;
+        }
 
+        if ($('#operadora').val() === "") {
+            alert('O campo operadora do benefício precisa ser preenchido!');
+            return;
+        }
 
+        if ($('#tipo').val() === "") {
+            alert('O campo tipo do benefício precisa ser preenchido!');
+            return;
+        }
 
+        if ($('#vencto').val() === "") {
+            alert('O campo vencto contrato do benefício precisa ser preenchido!');
+            return;
+        }
 
+        $.post('controller/BeneficiosController.php', {
 
+            action: 'inserir',
+            nome: $('#nome').val(),
+            operadora: $('#operadora').val(),
+            tipo: $('#tipo').val(),
+            vencto: $('#vencto').val()
+
+        }, function (res) {
+            let resp = JSON.parse(res);
+
+            if (resp.resCod) {
+                if ($("tbody tr").length === 0) {
+                    $('#registros h4').css('display', 'none');
+                    $('#registros table').css('display', 'table');
+                }
+
+                $("tbody").append(`
+                    <tr>
+                        <td>${resp.res.id}</td>
+                        <td>${$("#nome").val()}</td>
+                        <td>${$("#operadora").val()}</td>
+                        <td>${$("#tipo").val()}</td>
+                        <td>${$("#vencto").val()}</td>
+                        <td><button id="delete_${resp.res.id}" -data-action="delete_${resp.res.id}">Apagar Registro</button></td>
+                    </tr>
+                `);
+
+                $(`button[-data-action="delete_${resp.res.id}"]`).on('click', e => apagarRegistro(e));
+            }
+
+            $('input').val('');
+
+            alert(resp.res.msg);
+        });
+    })
 });

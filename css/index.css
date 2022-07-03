@@ -1,3 +1,27 @@
+div#fields {
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: space-between;
+    align-items: start;
+}
+
+#fields div {
+    width: 25%;
+    margin-bottom: 20px;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+    align-items: center;
+}
+
+button {
+    padding: 5px 20px;
+}
+
+#registros>* {
+    display: none;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;

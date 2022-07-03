@@ -1,7 +1,4 @@
 <?php
-
-    // $pdo = new PDO("mysql:host=localhost;")
-
     class Conexao 
     {
         private $host;
